@@ -1,5 +1,5 @@
 [package]
-name = "alns-rs"
+name = "alns"
 version = "0.1.0"
 authors = ["Pocket7878 <poketo7878@gmail.com>"]
 edition = "2018"
@@ -14,3 +14,4 @@ path = "src/main.rs"
 
 [dependencies]
 rand = "0.8.0"
+tspf = "0.3.0"

@@ -1,5 +1,7 @@
 use std::hash::Hash;
 
+pub type Objective = u64;
+
 pub trait State: Clone + Hash + Eq {
-  fn objective(&self) -> i64;
+  fn objective(&self) -> Objective;
 }

@@ -1,16 +1,16 @@
-mod acceptance;
+pub mod acceptance;
 mod destroy_operator;
 mod repair_operator;
 mod state;
 
-use acceptance::AcceptanceCriteria;
-use destroy_operator::DestroyOperator;
 use rand::Rng;
-use repair_operator::RepairOperator;
-use state::State;
 use std::cell::RefCell;
 use std::collections::HashSet;
 use std::rc::Rc;
+pub use acceptance::AcceptanceCriteria;
+pub use destroy_operator::DestroyOperator;
+pub use repair_operator::RepairOperator;
+pub use state::{State, Objective};
 
 fn select_with_weights<S>(arr: &Vec<Rc<S>>, weights: &[f64]) -> (usize, Rc<S>) {
   let mut upper_bound: f64 = 0.0;
@@ -60,13 +60,13 @@ impl<S: State> Solver<S> {
 
   pub fn run(
     mut self,
-    initial_solution: S,
+    initial_state: S,
     weight_parameter: [f64; 3],
     reaction: f64,
     iterations: i64,
   ) -> S {
-    let mut best_solution = initial_solution.clone();
-    let mut current_solution = initial_solution.clone();
+    let mut best_solution = initial_state.clone();
+    let mut current_solution = initial_state.clone();
     let mut d_weights = vec![1.0 as f64; self.destroy_operators.len()];
     let mut r_weights = vec![1.0 as f64; self.repair_operators.len()];
 
@@ -111,6 +111,7 @@ impl<S: State> Solver<S> {
 
       if current_solution.objective() < best_solution.objective() {
         best_solution = current_solution.clone();
+        println!("Found new best: {:?} at {}", best_solution.objective(), current_iteration);
         new_best = true;
       }
 
