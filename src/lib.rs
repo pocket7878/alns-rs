@@ -63,18 +63,18 @@ impl<S: State> Solver<S> {
     initial_state: S,
     weight_parameter: [f64; 3],
     reaction: f64,
-    iterations: i64,
+    iterations: u64,
   ) -> S {
     let mut best_solution = initial_state.clone();
     let mut current_solution = initial_state.clone();
     let mut d_weights = vec![1.0 as f64; self.destroy_operators.len()];
     let mut r_weights = vec![1.0 as f64; self.repair_operators.len()];
 
-    let segment_size = 200;
+    let segment_size = 100;
     let mut seg_d_count = vec![0; self.destroy_operators.len()];
     let mut seg_r_count = vec![0; self.repair_operators.len()];
-    let mut seg_d_score = vec![1.0 as f64; self.destroy_operators.len()];
-    let mut seg_r_score = vec![1.0 as f64; self.repair_operators.len()];
+    let mut seg_d_score = vec![0.0 as f64; self.destroy_operators.len()];
+    let mut seg_r_score = vec![0.0 as f64; self.repair_operators.len()];
     let mut accepted_states_set: HashSet<S> = HashSet::new();
     let mut current_iteration = 1;
 
@@ -103,7 +103,7 @@ impl<S: State> Solver<S> {
         better_than_current = true;
       }
 
-      if self.acceptance_criteria.accept(&current_solution, &t) {
+      if self.acceptance_criteria.accept(&best_solution, &current_solution, &t) {
         current_solution = t.clone();
         accepted = true;
         accepted_states_set.insert(t);
@@ -118,10 +118,12 @@ impl<S: State> Solver<S> {
       // Update Observed score
       if accepted && new_best {
         iteration_score = weight_parameter[0];
-      } else if not_accepted_before && better_than_current {
+      } else if not_accepted_before && accepted && better_than_current {
         iteration_score = weight_parameter[1];
-      } else if not_accepted_before && !better_than_current && accepted {
+      } else if not_accepted_before && accepted && !better_than_current {
         iteration_score = weight_parameter[2];
+      } else if !accepted {
+        iteration_score = 0.5;
       }
       seg_d_score[didx] += iteration_score;
       seg_d_score[ridx] += iteration_score;
@@ -143,8 +145,8 @@ impl<S: State> Solver<S> {
         // Reset segment scores
         seg_d_count = vec![0; self.destroy_operators.len()];
         seg_r_count = vec![0; self.repair_operators.len()];
-        seg_d_score = vec![1.0 as f64; self.destroy_operators.len()];
-        seg_r_score = vec![1.0 as f64; self.repair_operators.len()];
+        seg_d_score = vec![0.0 as f64; self.destroy_operators.len()];
+        seg_r_score = vec![0.0 as f64; self.repair_operators.len()];
       }
 
       current_iteration += 1;

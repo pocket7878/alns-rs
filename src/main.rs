@@ -7,7 +7,7 @@ use rand::seq::SliceRandom;
 use tspf::metric::MetricPoint;
 use alns_rs::Solver;
 use alns_rs::{State, Objective};
-use alns_rs::acceptance::{HillClimbAcceptanceCriteria, SimulatedAnnealingAcceptanceCriteria};
+use alns_rs::acceptance::{HillClimbAcceptanceCriteria, RecordToRecordTravelAcceptanceCriteria};
 use alns_rs::DestroyOperator;
 use alns_rs::RepairOperator;
 
@@ -236,14 +236,14 @@ fn main() {
     let random_destroy = RandomDestroyOperator{};
     let worst_removal_destroy = WorstRemovalOperator{};
     let path_removal_destroy = PathRemovalOperator{};
-    let simulated_annealing_acceptance = SimulatedAnnealingAcceptanceCriteria::new(
-        initial_state.objective(),
-        0.5,
-        0.9998,
+    let number_of_iterations = 50000;
+    let acceptance = RecordToRecordTravelAcceptanceCriteria::new(
+        0.0750,
+        0.0037,
+        number_of_iterations,
     );
-    let hill_climbing_acceptance = HillClimbAcceptanceCriteria{};
     let mut solver = Solver::new(
-        Box::new(hill_climbing_acceptance),
+        Box::new(acceptance),
     );
     solver.add_repair_operator(Box::new(greedy_repair));
     solver.add_destroy_operator(Box::new(random_destroy));
@@ -251,9 +251,9 @@ fn main() {
     solver.add_destroy_operator(Box::new(path_removal_destroy));
     let result = solver.run(
         initial_state,
-        [3.0, 2.0, 1.0],
-        0.8,
-        50000,
+        [10.0, 4.0, 2.0],
+        0.99,
+        number_of_iterations,
     );
     println!("Result score: {:?}", result.objective());
 }
